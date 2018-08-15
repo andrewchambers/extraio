@@ -184,3 +184,25 @@ func (mConn *MeteredConn) SetReadDeadline(t time.Time) error {
 func (mConn *MeteredConn) SetWriteDeadline(t time.Time) error {
 	return mConn.Conn.SetWriteDeadline(t)
 }
+
+type MeteredWriter struct {
+	W          io.Writer
+	WriteCount int64
+}
+
+func (mw *MeteredWriter) Write(buf []byte) (int, error) {
+	n, err := mw.W.Write(buf)
+	atomic.AddInt64(&mw.WriteCount, int64(n))
+	return n, err
+}
+
+type MeteredReader struct {
+	R         io.Reader
+	ReadCount int64
+}
+
+func (mw *MeteredReader) Read(buf []byte) (int, error) {
+	n, err := mw.R.Read(buf)
+	atomic.AddInt64(&mw.ReadCount, int64(n))
+	return n, err
+}
